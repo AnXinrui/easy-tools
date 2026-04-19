@@ -1,0 +1,8 @@
+[project]
+name = "pdf2png"
+version = "0.1.0"
+description = "Convert PDF pages to PNG images"
+requires-python = ">=3.13"
+dependencies = [
+    "pdf2image>=1.17.0",
+]
