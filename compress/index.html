@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图片压缩 — Easy Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --border: #e8e8e5;
+      --text: #1a1a18;
+      --text-secondary: #6b6b66;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --radius: 14px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      padding: 18px 24px;
+      gap: 12px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .85rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .15s;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    .page-title {
+      font-size: .85rem;
+      color: var(--text-secondary);
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+
+    .hero {
+      margin-bottom: 32px;
+    }
+    .hero h1 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      margin-top: 8px;
+      font-size: .9rem;
+      color: var(--text-secondary);
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 5px 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 99px;
+      font-size: .78rem;
+      font-weight: 500;
+    }
+
+    /* Settings */
+    .settings {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .settings label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .size-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .size-row input[type=number] {
+      width: 90px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .15s;
+    }
+    .size-row input[type=number]:focus { border-color: var(--accent); }
+
+    .size-row select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .size-row select:focus { border-color: var(--accent); }
+
+    /* Drop zone */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 14px;
+      color: var(--text-secondary);
+    }
+
+    .dropzone h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .dropzone p {
+      font-size: .85rem;
+      color: var(--text-secondary);
+    }
+
+    .dropzone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* File list */
+    .file-list {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .file-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .file-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .file-name {
+      font-size: .875rem;
+      font-weight: 500;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size-tag {
+      font-size: .75rem;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    /* Progress */
+    .progress-bar-wrap {
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width .3s ease;
+    }
+
+    .file-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .8rem;
+    }
+
+    .status-text { color: var(--text-secondary); }
+    .status-text.done { color: var(--success); font-weight: 500; }
+    .status-text.error { color: #dc2626; }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+      border-radius: 99px;
+      font-size: .78rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .download-btn:hover { background: #dcfce7; }
+
+    /* Actions */
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 99px;
+      font-size: .875rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: .9; }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: #ccc; }
+
+    .btn-download-all {
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+    .btn-download-all:hover:not(:disabled) { background: #dcfce7; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="../" class="back-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      返回
+    </a>
+    <span class="page-title">Easy Tools</span>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <h1>图片压缩</h1>
+      <p>将图片压缩到指定大小，支持 PNG、JPG、WEBP、BMP 格式</p>
+      <div class="privacy-badge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        文件仅在浏览器本地处理，不上传服务器
+      </div>
+    </div>
+
+    <div class="settings">
+      <label>目标大小</label>
+      <div class="size-row">
+        <input type="number" id="targetSize" value="1" min="0.01" step="0.1" />
+        <select id="sizeUnit">
+          <option value="mb">MB</option>
+          <option value="kb">KB</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept="image/*" multiple />
+      <div class="dropzone-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h3>拖拽图片到此处，或点击选择</h3>
+      <p>支持 PNG、JPG、JPEG、WEBP、BMP 格式，可多选</p>
+    </div>
+
+    <div class="file-list" id="fileList"></div>
+
+    <div class="actions" id="actions" style="display:none;">
+      <button class="btn btn-primary" id="compressBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9h6v6H9z"/><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z"/></svg>
+        开始压缩
+      </button>
+      <button class="btn btn-ghost" id="clearBtn">
+        清空
+      </button>
+      <button class="btn btn-download-all" id="downloadAllBtn" style="display:none;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        全部下载
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ---- State ----
+    const files = []; // { file, id, status, resultBlob, resultSize }
+    let compressedCount = 0;
+
+    // ---- DOM ----
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileListEl = document.getElementById('fileList');
+    const actionsEl = document.getElementById('actions');
+    const compressBtn = document.getElementById('compressBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    const targetSizeInput = document.getElementById('targetSize');
+    const sizeUnitSelect = document.getElementById('sizeUnit');
+
+    // ---- Drag & Drop ----
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      addFiles([...e.dataTransfer.files]);
+    });
+    fileInput.addEventListener('change', () => {
+      addFiles([...fileInput.files]);
+      fileInput.value = '';
+    });
+
+    function addFiles(newFiles) {
+      const supported = ['image/png','image/jpeg','image/webp','image/bmp','image/gif'];
+      newFiles.filter(f => supported.includes(f.type)).forEach(f => {
+        files.push({ file: f, id: Date.now() + Math.random(), status: 'pending', resultBlob: null });
+      });
+      renderList();
+    }
+
+    function renderList() {
+      fileListEl.innerHTML = '';
+      files.forEach((item, idx) => {
+        const el = document.createElement('div');
+        el.className = 'file-item';
+        el.id = 'item-' + idx;
+
+        const sizeStr = formatSize(item.file.size);
+        const resultStr = item.resultBlob ? formatSize(item.resultBlob.size) : '';
+
+        let statusHTML = '';
+        let progressHTML = '';
+        if (item.status === 'pending') {
+          statusHTML = `<span class="status-text">等待压缩</span>`;
+        } else if (item.status === 'compressing') {
+          progressHTML = `<div class="progress-bar-wrap"><div class="progress-bar" style="width:60%"></div></div>`;
+          statusHTML = `<span class="status-text">压缩中...</span>`;
+        } else if (item.status === 'done') {
+          const ratio = ((1 - item.resultBlob.size / item.file.size) * 100).toFixed(0);
+          progressHTML = `<div class="progress-bar-wrap"><div class="progress-bar" style="width:100%;background:#16a34a"></div></div>`;
+          statusHTML = `<span class="status-text done">完成 · ${sizeStr} → ${resultStr}（减少 ${ratio}%）</span>`;
+          statusHTML += `<a class="download-btn" href="#" data-idx="${idx}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            下载
+          </a>`;
+        } else if (item.status === 'skip') {
+          progressHTML = `<div class="progress-bar-wrap"><div class="progress-bar" style="width:100%;background:#f59e0b"></div></div>`;
+          statusHTML = `<span class="status-text" style="color:#d97706">已满足目标大小（${sizeStr}），直接保存</span>`;
+          statusHTML += `<a class="download-btn" href="#" data-idx="${idx}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            下载
+          </a>`;
+        } else if (item.status === 'error') {
+          statusHTML = `<span class="status-text error">压缩失败</span>`;
+        }
+
+        el.innerHTML = `
+          <div class="file-header">
+            <span class="file-name" title="${item.file.name}">${item.file.name}</span>
+            <span class="file-size-tag">${sizeStr}</span>
+          </div>
+          ${progressHTML}
+          <div class="file-status">${statusHTML}</div>
+        `;
+        fileListEl.appendChild(el);
+      });
+
+      // Attach download handlers
+      fileListEl.querySelectorAll('.download-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          const idx = parseInt(btn.dataset.idx);
+          downloadFile(idx);
+        });
+      });
+
+      actionsEl.style.display = files.length ? 'flex' : 'none';
+      updateDownloadAllBtn();
+    }
+
+    function updateDownloadAllBtn() {
+      const doneCount = files.filter(f => f.status === 'done' || f.status === 'skip').length;
+      if (doneCount >= 2) {
+        downloadAllBtn.style.display = 'inline-flex';
+      } else {
+        downloadAllBtn.style.display = 'none';
+      }
+    }
+
+    function formatSize(bytes) {
+      if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+      return (bytes / 1024).toFixed(1) + ' KB';
+    }
+
+    // ---- Compression ----
+    function getTargetBytes() {
+      const val = parseFloat(targetSizeInput.value) || 1;
+      const unit = sizeUnitSelect.value;
+      return unit === 'mb' ? val * 1024 * 1024 : val * 1024;
+    }
+
+    compressBtn.addEventListener('click', async () => {
+      const pending = files.filter(f => f.status === 'pending');
+      if (!pending.length) return;
+      compressBtn.disabled = true;
+      compressedCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        if (files[i].status !== 'pending') continue;
+        files[i].status = 'compressing';
+        renderList();
+        try {
+          const result = await compressImage(files[i].file, getTargetBytes());
+          if (result.skipped) {
+            files[i].status = 'skip';
+            files[i].resultBlob = result.blob;
+          } else {
+            files[i].status = 'done';
+            files[i].resultBlob = result.blob;
+          }
+        } catch (err) {
+          console.error(err);
+          files[i].status = 'error';
+        }
+        renderList();
+      }
+
+      compressBtn.disabled = false;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      files.length = 0;
+      renderList();
+      downloadAllBtn.style.display = 'none';
+    });
+
+    downloadAllBtn.addEventListener('click', async () => {
+      const done = files.filter(f => (f.status === 'done' || f.status === 'skip') && f.resultBlob);
+      for (const item of done) {
+        const url = URL.createObjectURL(item.resultBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = getOutputName(item.file.name);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        await new Promise(r => setTimeout(r, 100));
+      }
+    });
+
+    function downloadFile(idx) {
+      const item = files[idx];
+      if (!item?.resultBlob) return;
+      const url = URL.createObjectURL(item.resultBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = getOutputName(item.file.name);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function getOutputName(originalName) {
+      const dot = originalName.lastIndexOf('.');
+      const base = dot >= 0 ? originalName.slice(0, dot) : originalName;
+      return base + '_compressed.jpg';
+    }
+
+    // ---- Core Compression Logic (Canvas API) ----
+    function compressImage(file, targetBytes) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            try {
+              if (file.size <= targetBytes) {
+                // Already within target, just re-encode as JPEG
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(blob => resolve({ blob, skipped: true }), 'image/jpeg', 0.95);
+                return;
+              }
+
+              compressWithCanvas(img, targetBytes).then(resolve).catch(reject);
+            } catch(err) { reject(err); }
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function compressWithCanvas(img, targetBytes) {
+      // Step 1: Binary search on quality
+      let low = 0.05, high = 0.95;
+      let bestBlob = null;
+
+      for (let i = 0; i < 8; i++) {
+        const mid = (low + high) / 2;
+        const blob = await canvasToBlob(img, img.width, img.height, mid);
+        if (blob.size <= targetBytes) {
+          bestBlob = blob;
+          low = mid;
+        } else {
+          high = mid;
+        }
+      }
+
+      if (bestBlob && bestBlob.size <= targetBytes) {
+        return { blob: bestBlob, skipped: false };
+      }
+
+      // Step 2: Scale down dimensions
+      let scale = 0.9;
+      while (scale >= 0.1) {
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const blob = await canvasToBlob(img, w, h, 0.85);
+        if (blob.size <= targetBytes) {
+          return { blob, skipped: false };
+        }
+        scale -= 0.1;
+      }
+
+      // Fallback: minimum size
+      const blob = await canvasToBlob(img, Math.max(1, Math.round(img.width * 0.1)), Math.max(1, Math.round(img.height * 0.1)), 0.5);
+      return { blob, skipped: false };
+    }
+
+    function canvasToBlob(img, width, height, quality) {
+      return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error('Canvas toBlob failed'));
+        }, 'image/jpeg', quality);
+      });
+    }
+  </script>
+</body>
+</html>
